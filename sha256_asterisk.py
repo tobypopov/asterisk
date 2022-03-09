@@ -2,27 +2,37 @@ import hashlib
 import getpass
 
 def asciify_advanced(inp):
-    m = ""
+    out = ""
     for i in range(0,32):
-        m = m + chr((int(inp[i*2:i*2+2],16) % 90) + 33)
-    return m
+        # Take 2 hex characters from hash and convert to ASCII
+        # range from '!' (33) to 'z' (122)
+        out += chr((int(inp[i*2:i*2+2],16) % 90) + 33)
+    return out
 
 def asciify_basic(inp):
-    m = ""
+    out = ""
     temp = ""
     for i in range(0,32):
+        # Choose which bucket the character falls into
+        # Then take 2 hex characters from hash and convert to ASCII
+        # range based on bucket
         temp = int(inp[i*2:i*2+2],16) % 3
         if temp == 0:
-            m = m + chr((int(inp[i*2:i*2+2],16) % 26) + 97)
+            # Lowercase ASCII a-z (97-122)
+            out += chr((int(inp[i*2:i*2+2],16) % 26) + 97)
         elif temp == 1:
-            m = m + chr((int(inp[i*2:i*2+2],16) % 26) + 65)
+            # Uppercase ASCII A-Z (65-90)
+            out += chr((int(inp[i*2:i*2+2],16) % 26) + 65)
         else:
-            m = m + chr((int(inp[i*2:i*2+2],16) % 10) + 48)
-    return m
+            # Numbers 0-9 (48-57)
+            out += chr((int(inp[i*2:i*2+2],16) % 10) + 48)
+    return out
 
 def main():
+    # getpass used to remove seeing input in terminal window
     code = getpass.getpass("")
 
+    # Hashing 6 times because why not
     hash1 = hashlib.sha256(code.encode("utf-8")).hexdigest()
     hash2 = hashlib.sha256(hash1.encode("utf-8")).hexdigest()
     hash3 = hashlib.sha256(hash2.encode("utf-8")).hexdigest()
@@ -30,31 +40,25 @@ def main():
     hasha = hashlib.sha256(hash4.encode("utf-8")).hexdigest()
     hashb = hashlib.sha256(hasha.encode("utf-8")).hexdigest()
 
-    #print(hash1+"\n"+hash2+"\n"+hash3+"\n"+hash4+"\n"+hasha+"\n"+hashb)
+    # Last two hashes are used for generation
+    # Two are used instead of one because generation consumes
+    # two hash hex characters for one generated character
+    ascii_hash_advanced_a = asciify_advanced(hasha)
+    ascii_hash_advanced_b = asciify_advanced(hashb)
 
-    asca_hasha = asciify_advanced(hasha)
-    asca_hashb = asciify_advanced(hashb)
+    ascii_hash_basic_a = asciify_basic(hasha)
+    ascii_hash_basic_b = asciify_basic(hashb)
 
-    ascb_hasha = asciify_basic(hasha)
-    ascb_hashb = asciify_basic(hashb)
+    ascii_hash_advanced_final = ascii_hash_advanced_a + ascii_hash_advanced_b
+    ascii_hash_basic_final = ascii_hash_basic_a + ascii_hash_basic_b
 
-    finala = asca_hasha + asca_hashb
-    finalb = ascb_hasha + ascb_hashb
-
-    #print()
-    #print(asca_hasha)
-    #print(asca_hashb)
-    #print()
-    print(finala)
-    print(finala[:20])
-    print(finala[:12])
-    #print()
-    #print(ascb_hasha)
-    #print(ascb_hashb)
+    print(ascii_hash_advanced_final)
+    print(ascii_hash_advanced_final[:20])
+    print(ascii_hash_advanced_final[:12])
     print()
-    print(finalb)
-    print(finalb[:20])
-    print(finalb[:12])
+    print(ascii_hash_basic_final)
+    print(ascii_hash_basic_final[:20])
+    print(ascii_hash_basic_final[:12])
     print()
     print("----------------------------------------------------------------")
 
