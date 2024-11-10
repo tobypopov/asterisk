@@ -1,0 +1,201 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hash Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        .input-field {
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 18px;
+            border: 2px solid #555;
+            width: 100%;
+            max-width: 300px;
+            box-sizing: border-box;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+        }
+        .input-field::placeholder {
+            color: #888;
+        }
+        .output-field {
+            margin-top: 20px;
+            font-size: 16px;
+            font-family: monospace;
+            background-color: #1e1e1e;
+            padding: 10px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            width: 100%;
+            max-width: 600px; /* Updated max-width */
+            text-align: left;
+            overflow-wrap: break-word;
+            box-sizing: border-box;
+            color: #e0e0e0;
+        }
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            position: relative;
+        }
+        .toggle-label {
+            margin-left: 8px;
+            font-size: 14px;
+            color: #e0e0e0;
+        }
+        .toggle {
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #888;
+            border-radius: 50%;
+            background-color: #121212;
+            position: relative;
+            cursor: pointer;
+            outline: none;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Hover effect: Centered white overlay with transparency */
+        .toggle:hover::after {
+            content: "";
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+        }
+        /* Checked state: white background with black check mark */
+        .toggle:checked {
+            background-color: #ffffff;
+            border-color: #ffffff;
+        }
+        .toggle:checked::before {
+            content: "✔";
+            color: #121212;
+            font-size: 16px;
+            position: absolute;
+        }
+        /* Click flash effect */
+        .toggle:active::after {
+            background-color: rgba(255, 255, 255, 0.7);
+            transition: background-color 0.1s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Hash Generator</h1>
+    <input type="password" id="userInput" class="input-field" placeholder="Enter password" oninput="updateOutput()" autofocus>
+    
+    <div class="toggle-container">
+        <input type="checkbox" id="toggleCheckbox" class="toggle" onclick="togglePasswordVisibility()">
+        <label for="toggleCheckbox" class="toggle-label">Show as Plain Text</label>
+    </div>
+
+    <div id="output" class="output-field"></div>
+
+    <script>
+        function asciifyAdvanced(inp) {
+            let out = "";
+            for (let i = 0; i < 32; i++) {
+                out += String.fromCharCode((parseInt(inp.substr(i * 2, 2), 16) % 90) + 33);
+            }
+            return out;
+        }
+
+        function asciifyBasic(inp) {
+            let out = "";
+            let temp;
+            for (let i = 0; i < 32; i++) {
+                temp = parseInt(inp.substr(i * 2, 2), 16) % 3;
+                if (temp === 0) {
+                    out += String.fromCharCode((parseInt(inp.substr(i * 2, 2), 16) % 26) + 97); // a-z
+                } else if (temp === 1) {
+                    out += String.fromCharCode((parseInt(inp.substr(i * 2, 2), 16) % 26) + 65); // A-Z
+                } else {
+                    out += String.fromCharCode((parseInt(inp.substr(i * 2, 2), 16) % 10) + 48); // 0-9
+                }
+            }
+            return out;
+        }
+
+        function generateHashes(code) {
+            let hash1 = CryptoJS.SHA256(code).toString();
+            let hash2 = CryptoJS.SHA256(hash1).toString();
+            let hash3 = CryptoJS.SHA256(hash2).toString();
+            let hash4 = CryptoJS.SHA256(hash3).toString();
+            let hasha = CryptoJS.SHA256(hash4).toString();
+            let hashb = CryptoJS.SHA256(hasha).toString();
+
+            let asciiHashAdvancedA = asciifyAdvanced(hasha);
+            let asciiHashAdvancedB = asciifyAdvanced(hashb);
+            let asciiHashBasicA = asciifyBasic(hasha);
+            let asciiHashBasicB = asciifyBasic(hashb);
+
+            let asciiHashAdvancedFinal = asciiHashAdvancedA + asciiHashAdvancedB;
+            let asciiHashBasicFinal = asciiHashBasicA + asciiHashBasicB;
+
+            return {
+                advancedFull: asciiHashAdvancedFinal,
+                advanced20: asciiHashAdvancedFinal.slice(0, 20),
+                advanced12: asciiHashAdvancedFinal.slice(0, 12),
+                basicFull: asciiHashBasicFinal,
+                basic20: asciiHashBasicFinal.slice(0, 20),
+                basic12: asciiHashBasicFinal.slice(0, 12)
+            };
+        }
+
+        function updateOutput() {
+            const userInput = document.getElementById("userInput").value;
+            if (userInput) {
+                const hashes = generateHashes(userInput);
+                document.getElementById("output").textContent = 
+                    `${hashes.advancedFull}
+` +
+                    `${hashes.advanced20}
+` +
+                    `${hashes.advanced12}
+
+` +
+                    `${hashes.basicFull}
+` +
+                    `${hashes.basic20}
+` +
+                    `${hashes.basic12}
+`;
+            } else {
+                document.getElementById("output").textContent = "";
+            }
+        }
+
+        function togglePasswordVisibility() {
+            const inputField = document.getElementById("userInput");
+            const isChecked = document.getElementById("toggleCheckbox").checked;
+            inputField.type = isChecked ? "text" : "password"; // Show text if checked, password dots otherwise
+        }
+
+        // Automatically focus on the input field when the page loads
+        window.onload = function() {
+            document.getElementById("userInput").focus();
+        }
+    </script>
+
+</body>
+</html>
